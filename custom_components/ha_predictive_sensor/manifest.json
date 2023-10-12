@@ -1,0 +1,15 @@
+{
+  "domain": "ha_predictive_sensor",
+  "name": "Predictive Sensor",
+  "codeowners": [
+    "@radumarinoiu"
+  ],
+  "dependencies": [
+    "sensor"
+  ],
+  "documentation": "https://github.com/radumarinoiu/ha-predictive-sensor.git",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/radumarinoiu/ha-predictive-sensor.git",
+  "requirements": [],
+  "version": "0.0.1"
+}

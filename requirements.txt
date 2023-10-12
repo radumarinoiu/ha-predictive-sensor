@@ -1,0 +1,2 @@
+# Home Assistant Core
+homeassistant==2023.7.3
