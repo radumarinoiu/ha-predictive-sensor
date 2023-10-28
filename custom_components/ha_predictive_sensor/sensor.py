@@ -72,30 +72,37 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
         if self._sensor_temperature_history:
             self._predicted_temp = sum(self._sensor_temperature_history)/len(self._sensor_temperature_history)
 
-    async def _update_sensor_history(self):
-        end = datetime.datetime.now()
-        start = end - datetime.timedelta(hours=2)
-        start, end = dt_util.as_utc(start), dt_util.as_utc(end)
-        _sensor_temperature_histories = await get_instance(self.hass).async_add_executor_job(
-            history.state_changes_during_period,
-            self.hass,
-            start,
-            end,
-            self.temperature_entity_id,
-        )
-        new_history = [elem.state for elem in _sensor_temperature_histories.get(self.temperature_entity_id, list())]
-        if new_history:
-            _LOGGER.info(f"New Historical data: {new_history}")
-            self._sensor_temperature_history = new_history
-        else:
-            _LOGGER.warning(f"Failed fetching sensor history: {new_history}")
-
     @callback
-    def _async_update_temp(self, state):
+    def _async_update_temp(self, state: State):
         """Update thermostat with latest state from sensor."""
         try:
-            # self._sensor_temperature_history.append(float(state.state))
-            self._recalculate_prediction()
+            end = datetime.datetime.now()
+            start = end - datetime.timedelta(hours=2)
+            start, end = dt_util.as_utc(start), dt_util.as_utc(end)
+            _sensor_temperature_histories = await get_instance(self.hass).async_add_executor_job(
+                history.state_changes_during_period,
+                self.hass,
+                start,
+                end,
+                self.temperature_entity_id,
+            )
+            _valid_states = [
+                elem
+                for elem in _sensor_temperature_histories.get(self.temperature_entity_id, list())
+                if elem.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN)
+            ]
+            if _valid_states:
+                _values = [float(elem.state) for elem in _valid_states]
+                _timestamps = [elem.last_changed for elem in _valid_states]
+                _direction_vector_items = [
+                    (_values[index+1] - _values[index]) /  # Value difference between every 2 values
+                    (_timestamps[index+1] - _timestamps[index]).total_seconds()  # Time difference between every 2 values
+                    for index in range(len(_valid_states)-1)
+                ]
+                _direction_vector = sum(_direction_vector_items)/len(_direction_vector_items)
+                self._predicted_temp = state.state + _direction_vector * 60 * 60 * 1  # Predict value 1 hour from now
+            else:
+                _LOGGER.warning("Failed fetching sensor history")
         except ValueError as ex:
             _LOGGER.error("Unable to update from sensor: %s", ex)
 
