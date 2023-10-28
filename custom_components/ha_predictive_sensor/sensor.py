@@ -5,7 +5,8 @@ from typing import List
 from homeassistant.components.recorder import get_instance, history
 from homeassistant.components.recorder.models import LazyState
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EVENT_HOMEASSISTANT_START, CONF_NAME, CONF_UNIQUE_ID
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EVENT_HOMEASSISTANT_START, CONF_NAME, CONF_UNIQUE_ID, \
+    PRECISION_TENTHS
 from homeassistant.core import callback, CoreState, HomeAssistant, State
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -15,8 +16,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
 from custom_components.ha_predictive_sensor import PLATFORMS, DOMAIN
-from custom_components.ha_predictive_sensor.const import CONF_SENSOR
-
+from custom_components.ha_predictive_sensor.const import CONF_SENSOR, CONF_PRECISION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,6 +35,7 @@ async def async_setup_platform(
     sensor_entity_id = config[CONF_SENSOR]
     unit = hass.config.units.temperature_unit
     unique_id = config.get(CONF_UNIQUE_ID)
+    precision = config.get(CONF_PRECISION)
 
     async_add_entities(
         [
@@ -43,17 +44,19 @@ async def async_setup_platform(
                 sensor_entity_id,
                 unique_id,
                 unit,
+                precision
             )
         ]
     )
 
 
 class PredictiveSensor(SensorEntity, RestoreEntity):
-    def __init__(self, name, sensor_entity, unique_id, unit):
+    def __init__(self, name, sensor_entity, unique_id, unit, precision):
         self._name = name
         self._unique_id = unique_id
         self._unit = unit
         self.temperature_entity_id = sensor_entity
+        self._temp_precision = precision
 
         self.max_history_entries = 10
         self._sensor_temperature_history = list()
@@ -153,3 +156,10 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
     def temperature_unit(self):
         """Return the unit of measurement."""
         return self._unit
+
+    @property
+    def precision(self):
+        """Return the precision of the system."""
+        if self._temp_precision is not None:
+            return self._temp_precision
+        return PRECISION_TENTHS
