@@ -1,7 +1,9 @@
 import datetime
 import logging
+from typing import List
 
 from homeassistant.components.recorder import get_instance, history
+from homeassistant.components.recorder.models import LazyState
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EVENT_HOMEASSISTANT_START, CONF_NAME, CONF_UNIQUE_ID
 from homeassistant.core import callback, CoreState, HomeAssistant, State
@@ -81,7 +83,7 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
             end,
             self.temperature_entity_id,
         )
-        new_history = _sensor_temperature_histories.get(self.temperature_entity_id, list())
+        new_history = [elem.state for elem in _sensor_temperature_histories.get(self.temperature_entity_id, list())]
         if new_history:
             self._sensor_temperature_history = new_history
         else:
