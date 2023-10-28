@@ -99,7 +99,7 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
                     for index in range(len(_valid_states)-1)
                 ]
                 _direction_vector = sum(_direction_vector_items)/len(_direction_vector_items)
-                self._predicted_temp = state.state + _direction_vector * 60 * 60 * 1  # Predict value 1 hour from now
+                self._predicted_temp = float(state.state) + _direction_vector * 60 * 60 * 1  # Predict value 1 hour from now
             else:
                 _LOGGER.warning("Failed fetching sensor history")
         except ValueError as ex:
