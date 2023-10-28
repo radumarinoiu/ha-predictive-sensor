@@ -72,8 +72,7 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
         if self._sensor_temperature_history:
             self._predicted_temp = sum(self._sensor_temperature_history)/len(self._sensor_temperature_history)
 
-    @callback
-    def _async_update_temp(self, state: State):
+    async def _async_update_temp(self, state: State):
         """Update thermostat with latest state from sensor."""
         try:
             end = datetime.datetime.now()
@@ -116,7 +115,6 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
         if new_state.entity_id != self.temperature_entity_id:
             return
 
-        await self._update_sensor_history()
         await self._async_update_temp(new_state)
 
 
