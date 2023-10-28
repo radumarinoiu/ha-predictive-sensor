@@ -65,8 +65,8 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
 
     def _recalculate_prediction(self):
         """This currently does average, but it should do prediction in the future"""
-        # while len(self._sensor_temperature_history) > self.max_history_entries:
-        #     self._sensor_temperature_history.pop(0)
+        # This function would do predictions based on a vector value representing Temperature change per second
+        # temp[-1] + sum([(temp[index+1]-temp[index])/time_diff[index] for index in range(len(temp)-1)])/(len(temp)-1) * 60 * 60 (1 hour into the future)
         if self._sensor_temperature_history:
             self._predicted_temp = sum(self._sensor_temperature_history)/len(self._sensor_temperature_history)
 
@@ -81,8 +81,11 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
             end,
             self.temperature_entity_id,
         )
-        self._sensor_temperature_history = _sensor_temperature_histories.get(self.temperature_entity_id, list())
-        _LOGGER.debug(self._sensor_temperature_history)
+        new_history = _sensor_temperature_histories.get(self.temperature_entity_id, list())
+        if new_history:
+            self._sensor_temperature_history = new_history
+        else:
+            _LOGGER.warning(f"Failed fetching sensor history: {new_history}")
 
     @callback
     def _async_update_temp(self, state):
