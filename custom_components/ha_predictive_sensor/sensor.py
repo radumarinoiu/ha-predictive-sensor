@@ -60,7 +60,7 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
 
         self.max_history_entries = 10
         self._sensor_temperature_history = list()
-        self._predicted_temp = 0.0
+        self._predicted_temp = None
         # self.device_class = "temperature"
 
     @property
