@@ -71,6 +71,7 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
         """Update thermostat with latest state from sensor."""
         try:
             self._sensor_temperature_history.append(float(state.state))
+            self._recalculate_prediction()
         except ValueError as ex:
             _LOGGER.error("Unable to update from sensor: %s", ex)
 
