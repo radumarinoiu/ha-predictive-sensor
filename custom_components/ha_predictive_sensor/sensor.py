@@ -65,14 +65,7 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
         """Return the sensor temperature."""
         return self._predicted_temp
 
-    def _recalculate_prediction(self):
-        """This currently does average, but it should do prediction in the future"""
-        # This function would do predictions based on a vector value representing Temperature change per second
-        # temp[-1] + sum([(temp[index+1]-temp[index])/time_diff[index] for index in range(len(temp)-1)])/(len(temp)-1) * 60 * 60 (1 hour into the future)
-        if self._sensor_temperature_history:
-            self._predicted_temp = sum(self._sensor_temperature_history)/len(self._sensor_temperature_history)
-
-    async def _async_update_temp(self, state: State):
+    async def _async_update_temp(self, state):
         """Update thermostat with latest state from sensor."""
         try:
             end = datetime.datetime.now()
@@ -94,12 +87,14 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
                 _values = [float(elem.state) for elem in _valid_states]
                 _timestamps = [elem.last_changed for elem in _valid_states]
                 _direction_vector_items = [
-                    (_values[index+1] - _values[index]) /  # Value difference between every 2 values
-                    (_timestamps[index+1] - _timestamps[index]).total_seconds()  # Time difference between every 2 values
-                    for index in range(len(_valid_states)-1)
+                    (_values[index + 1] - _values[index]) /  # Value difference between every 2 values
+                    (_timestamps[index + 1] - _timestamps[index]).total_seconds()
+                    # Time difference between every 2 values
+                    for index in range(len(_valid_states) - 1)
                 ]
-                _direction_vector = sum(_direction_vector_items)/len(_direction_vector_items)
-                self._predicted_temp = float(state.state) + _direction_vector * 60 * 60 * 1  # Predict value 1 hour from now
+                _direction_vector = sum(_direction_vector_items) / len(_direction_vector_items)
+                self._predicted_temp = float(
+                    state.state) + _direction_vector * 60 * 60 * 1  # Predict value 1 hour from now
             else:
                 _LOGGER.warning("Failed fetching sensor history")
         except ValueError as ex:
