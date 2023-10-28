@@ -56,7 +56,7 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
         # self.device_class = "temperature"
 
     @property
-    def current_temperature(self):
+    def native_value(self):
         """Return the sensor temperature."""
         return self._predicted_temp
 
