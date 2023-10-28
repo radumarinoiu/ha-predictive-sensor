@@ -85,7 +85,7 @@ class PredictiveSensor(SensorEntity, RestoreEntity):
         )
         new_history = [elem.state for elem in _sensor_temperature_histories.get(self.temperature_entity_id, list())]
         if new_history:
-            _LOGGER.debug(f"New Historical data: {new_history}")
+            _LOGGER.info(f"New Historical data: {new_history}")
             self._sensor_temperature_history = new_history
         else:
             _LOGGER.warning(f"Failed fetching sensor history: {new_history}")
