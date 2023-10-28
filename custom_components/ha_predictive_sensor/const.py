@@ -1,0 +1,1 @@
+CONF_SENSOR = "target_sensor"
